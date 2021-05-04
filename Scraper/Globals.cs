@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Scraper
 {
     public static class Globals
     {
-        public static List<string> AcceptedDomains = new List<string> { "eurogirlsescort.com" };
+        public static List<string> AcceptedDomains = new List<string> { "eurogirlsescort.com", "topescortbabes.com" };
     }
 }

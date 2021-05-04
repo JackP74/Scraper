@@ -6,22 +6,22 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
-using CefSharp;
-using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using MessageCustomHandler;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace Scraper
 {
+    //TODO: add pages to scrapes
     public partial class FrmMain : Form
     {
         #region "Variables"
+        private readonly string newLine = Environment.NewLine;
         private readonly string AppPath = Application.StartupPath;
         private readonly string URLsPath = Path.Combine(Application.StartupPath, "urls.xml");
 
@@ -144,11 +144,18 @@ namespace Scraper
                             case "eurogirlsescort.com":
                                 {
                                     Log($"Getting user profiles from '{url}'");
-                                    ScrapeEuroGirlsEscort(url);
+                                    //ScrapeEuroGirlsEscort(url);
+                                    break;
+                                }
+                            case "topescortbabes.com":
+                                {
+                                    Log($"Getting user profiles from '{url}'");
+                                    ScrapeTopEscortBabes(url);
                                     break;
                                 }
                             default:
-                                break;
+                                LogWarning($"Domain {host} unsupported and skipped.");
+                                continue;
                         }
                     }
                     else
@@ -158,7 +165,7 @@ namespace Scraper
                     }
                 }
 
-                Log(Environment.NewLine + "Done" + Environment.NewLine);
+                Log(newLine + "Done" + newLine);
                 StopScrape();
             }) { IsBackground = true };
 
@@ -366,7 +373,7 @@ namespace Scraper
 
                             htmlCode = browser.Get(url, true, Properties.Resources.EuroGirlsEscort);
 
-                            finalInfo += url + Environment.NewLine;
+                            finalInfo += url + newLine;
 
                             doc = new HtmlDocument();
                             doc.LoadHtml(htmlCode);
@@ -382,12 +389,12 @@ namespace Scraper
                                 string Name = nameStr.Split(',')[0];
                                 string Afiliation = nameStr.Split(',')[1];
 
-                                finalInfo += "Name:" + Name + Environment.NewLine;
-                                finalInfo += "Affiliation:" + Afiliation + Environment.NewLine;
+                                finalInfo += "Name:" + Name + newLine;
+                                finalInfo += "Affiliation:" + Afiliation + newLine;
                             }
                             else
                             {
-                                finalInfo += "Name:" + nameStr + Environment.NewLine;
+                                finalInfo += "Name:" + nameStr + newLine;
                             }
 
                             HtmlNode profileParent = parentProfile.SelectSingleNode(".//a[contains(@class, 'js-gallery')]");
@@ -402,13 +409,13 @@ namespace Scraper
                             foreach (HtmlNode lineNode in singleInfoNodes)
                             {
                                 string lineInfo = lineNode.InnerText.Replace("\n", "").Replace("\r", "").Trim().Replace("  ", " ");
-                                finalInfo += lineInfo + Environment.NewLine;
+                                finalInfo += lineInfo + newLine;
                             }
 
                             HtmlNode phoneNode = parentProfile.SelectSingleNode(".//a[contains(@class, 'js-phone')]");
 
                             string phoneNumber = phoneNode.InnerText.Replace("&nbsp;", " ");
-                            finalInfo += "Phone number:" + phoneNumber + Environment.NewLine;
+                            finalInfo += "Phone number:" + phoneNumber + newLine;
 
                             try
                             {
@@ -434,7 +441,7 @@ namespace Scraper
                                             finalInfo += " | ";
                                     }
 
-                                    finalInfo += Environment.NewLine;
+                                    finalInfo += newLine;
                                 }
                             }
                             catch { }
@@ -465,7 +472,7 @@ namespace Scraper
                                         if (serviceLine != servicesLines.Last())
                                             finalInfo += " | ";
                                     }
-                                    finalInfo += Environment.NewLine;
+                                    finalInfo += newLine;
                                 }
                             }
                             catch { }
@@ -538,6 +545,220 @@ namespace Scraper
 
             return true;
         }
+
+        private bool ScrapeTopEscortBabes(string urlToScrape)
+        {
+            try
+            {
+                List<string> ProfileURLs = new List<string>();
+
+                using WebClient client = new WebClient();
+                client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0");
+                client.Headers.Add(HttpRequestHeader.Cookie, "plus18=1");
+
+                string htmlCode = client.DownloadString(urlToScrape);
+
+                var doc = new HtmlDocument();
+                doc.LoadHtml(htmlCode);
+
+                HtmlNode parentNode = doc.GetElementbyId("homepage_right");
+                HtmlNodeCollection itemParentsNodes = parentNode.SelectNodes(".//div[contains(@class, 'items')]");
+
+                if (itemParentsNodes.Count() == 2)
+                {
+                    foreach (HtmlNode mainNode in itemParentsNodes)
+                    {
+                        HtmlNodeCollection profilesNodes = mainNode.SelectNodes(".//li");
+
+                        if (profilesNodes != null)
+                        {
+                            foreach (HtmlNode singleProfileNode in profilesNodes)
+                            {
+                                HtmlNode hrefNode = singleProfileNode.SelectSingleNode(".//a[@href]");
+                                string hrefValue = hrefNode.GetAttributeValue("href", string.Empty);
+
+                                if (string.IsNullOrWhiteSpace(hrefValue))
+                                    continue;
+
+                                ProfileURLs.Add(hrefValue);
+                            }
+                        }
+                    }
+                    
+                    foreach (string url in ProfileURLs)
+                    {
+                        try
+                        {
+                            string finalInfo = "";
+
+                            htmlCode = browser.Get(url, true, Properties.Resources.TopEscortBabes);
+
+                            Clipboard.SetText(htmlCode);
+                            CMBox.Show("1");
+
+                            finalInfo += url + newLine;
+
+                            doc = new HtmlDocument();
+                            doc.LoadHtml(htmlCode);
+
+                            HtmlNode mainParentNode = doc.GetElementbyId("homepage");
+
+                            HtmlNode headerNode = mainParentNode.SelectSingleNode(".//div[@class='profile-cover']");
+                            HtmlNode titleNode = headerNode.SelectSingleNode(".//h2[@class='header-title']");
+
+                            string profileName = titleNode.InnerText.Replace("\n", "").Replace("\r", "").Trim().Replace("  ", " ");
+
+                            finalInfo += "Name:" + profileName + newLine;
+
+                            try
+                            {
+                                HtmlNode afiliationNode = doc.GetElementbyId("accord-agency");
+
+                                if (afiliationNode == null)
+                                {
+                                    finalInfo += "Affiliation:Independent" + newLine;
+                                }
+                                else
+                                {
+                                    HtmlNode afiliationBodyNode = afiliationNode.SelectSingleNode(".//div");
+                                    HtmlNode afiliationNameNode = afiliationBodyNode.SelectSingleNode(".//h4");
+
+                                    if (afiliationNameNode == null)
+                                    {
+                                        finalInfo += "Affiliation:Independent" + newLine;
+                                    }
+                                    else
+                                    {
+                                        string afiliation = afiliationNameNode.InnerText.Replace("\n", "").Replace("\r", "").Trim().Replace("  ", " ");
+                                        finalInfo += "Affiliation:" + afiliation + newLine;
+                                    }
+                                }
+                            }
+                            catch { }
+
+                            HtmlNode personalNode = doc.GetElementbyId("accord-personal-data");
+                            HtmlNode detailsNode = personalNode.SelectSingleNode(".//div[contains(@class, 'detail-block-body')]");
+
+                            HtmlNodeCollection detailLineNode = detailsNode.SelectNodes(".//div[@class='personal-data-item']");
+
+                            foreach (HtmlNode lineNode in detailLineNode)
+                            {
+                                string infoLine = lineNode.InnerText.Replace("\n", "").Replace("\r", "").Trim().Replace("  ", " ");
+
+                                RegexOptions options = RegexOptions.None;
+                                Regex regex = new Regex("[ ]{2,}", options);
+                                infoLine = regex.Replace(infoLine, ":");
+
+                                infoLine = infoLine.Replace(":•:", ",");
+
+                                finalInfo += infoLine + newLine;
+                            }
+
+                            try
+                            {
+                                HtmlNode priceNode = doc.GetElementbyId("prices");
+                                HtmlNodeCollection priceListNode = priceNode.SelectNodes(".//div[@class='price-item']");
+
+                                if (priceListNode != null)
+                                {
+                                    finalInfo += "Prices:";
+
+                                    foreach (HtmlNode lineNode in priceListNode)
+                                    {
+                                        string infoLine = lineNode.InnerText.Replace("\n", "").Replace("\r", "").Trim().Replace("  ", " ");
+
+                                        RegexOptions options = RegexOptions.None;
+                                        Regex regex = new Regex("[ ]{2,}", options);
+                                        infoLine = regex.Replace(infoLine, ":");
+
+                                        infoLine = "-" + infoLine.Replace(" Price:", "-").Replace(":", " ") + "-";
+
+                                        finalInfo += infoLine;
+
+                                        if (lineNode != priceListNode.Last())
+                                        {
+                                            finalInfo += " | ";
+                                        }
+                                    }
+
+                                    finalInfo += newLine;
+                                }
+                            }
+                            catch { }
+
+                            finalInfo = finalInfo.Trim();
+
+                            string profilesPath = Path.Combine(AppPath, "Profiles");
+
+                            if (!Directory.Exists(profilesPath))
+                                Directory.CreateDirectory(profilesPath);
+
+                            string ProfilePath = Path.Combine(profilesPath, profileName);
+
+                            if (Directory.Exists(ProfilePath))
+                                Directory.Delete(ProfilePath, true);
+
+                            Directory.CreateDirectory(ProfilePath);
+
+                            string profileTxtPath = Path.Combine(ProfilePath, "profile.txt");
+
+                            StreamWriter sw = new StreamWriter(profileTxtPath);
+                            sw.WriteLine(finalInfo);
+                            sw.Close();
+
+                            try
+                            {
+                                HtmlNode mainImageNode = doc.GetElementbyId("profile-details-right");
+                                
+
+                                Clipboard.SetText(mainImageNode.OuterHtml);
+                                CMBox.Show("1");
+
+                                HtmlNode imagesParentNode = mainImageNode.SelectSingleNode(".//div[@class='photos-wrapper']");
+
+                                HtmlNodeCollection imagesNode = imagesParentNode.SelectNodes(".//a[@class='ilightbox']");
+
+                                foreach (HtmlNode singleImageNode in imagesNode)
+                                {
+                                    string hrefValue = singleImageNode.GetAttributeValue("href", string.Empty);
+                                    Log(hrefValue);
+                                }
+                            }
+                            catch { }
+                            
+                        }
+                        catch (ThreadAbortException)
+                        {
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError("Url invalid: " + url + ". Error: " + ex.ToString());
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    LogError($"Invalid parent item count, expected 2 got {itemParentsNodes.Count()}");
+                }
+            }
+            catch (ThreadAbortException)
+            {
+                //nothing, stopped
+            }
+            catch (Exception ex)
+            {
+                LogError(ex.ToString());
+            }
+            finally
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            return true;
+        }
         #endregion
 
         #region "Handles"
@@ -585,7 +806,7 @@ namespace Scraper
             {
                 string url = ListURLs.SelectedItems[0].SubItems[0].Text;
 
-                if (string.IsNullOrWhiteSpace(url))
+                if (!string.IsNullOrWhiteSpace(url))
                     Clipboard.SetText(url);
             }
             else
@@ -598,7 +819,7 @@ namespace Scraper
             {
                 string url = ListURLs.SelectedItems[0].SubItems[0].Text;
 
-                if (string.IsNullOrWhiteSpace(url))
+                if (!string.IsNullOrWhiteSpace(url))
                     Process.Start(url);
             }
             else

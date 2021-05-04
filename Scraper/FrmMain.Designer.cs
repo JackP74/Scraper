@@ -53,6 +53,7 @@ namespace Scraper
             this.ColumnURL,
             this.ColumnActive,
             this.ColumnStatus});
+            this.ListURLs.ContextMenuStrip = this.ContextListURLs;
             this.ListURLs.FullRowSelect = true;
             this.ListURLs.HideSelection = false;
             this.ListURLs.Location = new System.Drawing.Point(4, 4);
@@ -125,19 +126,19 @@ namespace Scraper
             this.ContextListURLsCopy,
             this.ContextListURLsOpen});
             this.ContextListURLs.Name = "ContextListURLs";
-            this.ContextListURLs.Size = new System.Drawing.Size(211, 80);
+            this.ContextListURLs.Size = new System.Drawing.Size(115, 52);
             // 
             // ContextListURLsCopy
             // 
             this.ContextListURLsCopy.Name = "ContextListURLsCopy";
-            this.ContextListURLsCopy.Size = new System.Drawing.Size(210, 24);
+            this.ContextListURLsCopy.Size = new System.Drawing.Size(114, 24);
             this.ContextListURLsCopy.Text = "Copy";
             this.ContextListURLsCopy.Click += new System.EventHandler(this.ContextListURLsCopy_Click);
             // 
             // ContextListURLsOpen
             // 
             this.ContextListURLsOpen.Name = "ContextListURLsOpen";
-            this.ContextListURLsOpen.Size = new System.Drawing.Size(210, 24);
+            this.ContextListURLsOpen.Size = new System.Drawing.Size(114, 24);
             this.ContextListURLsOpen.Text = "Open";
             this.ContextListURLsOpen.Click += new System.EventHandler(this.ContextListURLsOpen_Click);
             // 

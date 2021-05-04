@@ -79,5 +79,14 @@ namespace Scraper.Properties {
                 return ResourceManager.GetString("EuroGirlsEscort", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string TopEscortBabes {
+            get {
+                return ResourceManager.GetString("TopEscortBabes", resourceCulture);
+            }
+        }
     }
 }

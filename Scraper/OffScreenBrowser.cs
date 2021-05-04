@@ -26,6 +26,15 @@ namespace Scraper
             this.scriptNeeded = scriptNeeded;
             this.scriptToRun = scriptToRun;
 
+            var mngr = Cef.GetGlobalCookieManager();
+            Cookie Ac = new Cookie
+            {
+                HttpOnly = false,
+                Name = "plus18",
+                Value = "1"
+            };
+            mngr.SetCookie("topescortbabes.com", Ac);
+
             browser.Load(uri);
 
             while (waitForBrowser)
