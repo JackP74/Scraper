@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,6 +30,7 @@ namespace Scraper
 
         private OffScreenBrowser browser = new OffScreenBrowser();
         private bool Scraping = false;
+        private Thread threadScrape;
         #endregion
 
         #region "Win32 Imports"
@@ -103,24 +105,95 @@ namespace Scraper
         {
             if (Scraping)
             {
+                LogWarning("Already started");
+
                 BtnStart.Text = "Stop";
-                
+                LabelStatus.Text = "Getting profiles...";
 
                 return;
             }
+            else
+                Scraping = true;
 
-            Scraping = true;
-
-            StartThread(() =>
+            if (threadScrape != null)
             {
-                
-            });
+                try
+                {
+                    threadScrape.Abort();
+                    threadScrape = null;
+                }
+                catch { }
+            }
+
+            Log("Starting...");
+
+            threadScrape = new Thread(() =>
+            {
+                foreach (var site in Sites.URLs.Where(x => x.Active))
+                {
+                    string url = site.URL;
+                    string host = new Uri(url).Host;
+
+                    if (host.StartsWith("www."))
+                        host = host.Substring(4);
+
+                    if (Globals.AcceptedDomains.Contains(host))
+                    {
+                        switch (host)
+                        {
+                            case "eurogirlsescort.com":
+                                {
+                                    Log($"Getting user profiles from '{url}'");
+                                    ScrapeEuroGirlsEscort(url);
+                                    break;
+                                }
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        LogWarning($"Domain {host} unsupported and skipped.");
+                        continue;
+                    }
+                }
+
+                Log(Environment.NewLine + "Done" + Environment.NewLine);
+                StopScrape();
+            }) { IsBackground = true };
+
+            threadScrape.SetApartmentState(ApartmentState.STA);
+            threadScrape.Start();
         }
 
-        private void StopScrape()
+        private void StopScrape(bool endMessage = false)
         {
+            if (!Scraping)
+            {
+                LogWarning("Already stopped");
 
-            
+                BtnStart.Text = "Start";
+                LabelStatus.Text = "Idle...";
+
+                return;
+            }
+            else
+            {
+                if (threadScrape != null)
+                {
+                    try
+                    {
+                        threadScrape.Abort();
+                        threadScrape = null;
+                    }
+                    catch { }
+                }
+            }
+
+            Scraping = false;
+
+            if (endMessage)
+                Log("Stopped by user");
         }
 
         public void CreateConsole()
@@ -248,7 +321,7 @@ namespace Scraper
         #endregion
 
         #region "Scrape Functions"
-        private bool ScrapeEuroGirlsEscort()
+        private bool ScrapeEuroGirlsEscort(string urlToScrape)
         {
             try
             {
@@ -258,7 +331,7 @@ namespace Scraper
                 client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0");
                 client.Headers.Add(HttpRequestHeader.Cookie, "over18=1");
 
-                string htmlCode = client.DownloadString(Sites.URLs[0].URL);
+                string htmlCode = client.DownloadString(urlToScrape);
 
                 var doc = new HtmlDocument();
                 doc.LoadHtml(htmlCode);
@@ -279,7 +352,7 @@ namespace Scraper
                             {
                                 string hrefValue = profileNode.GetAttributeValue("href", string.Empty);
 
-                                string url = "https://" + new Uri(Sites.URLs[0].URL).Host + hrefValue;
+                                string url = "https://" + new Uri(urlToScrape).Host + hrefValue;
                                 ProfileURLs.Add(url);
                             }
                         }
@@ -433,6 +506,10 @@ namespace Scraper
                                 i++;
                             }
                         }
+                        catch (ThreadAbortException)
+                        {
+                            break;
+                        }
                         catch (Exception ex)
                         {
                             LogError("Url invalid: " + url + ". Error: " + ex.ToString());
@@ -444,6 +521,10 @@ namespace Scraper
                 {
                     LogError($"Invalid parent item count, expected 1 got {parentItem.Count()}");
                 }
+            }
+            catch (ThreadAbortException)
+            {
+                //nothing, stopped
             }
             catch (Exception ex)
             {
@@ -463,9 +544,7 @@ namespace Scraper
         private void FrmMain_Load(object sender, EventArgs e)
         {
             SetCueText(TxtAddURL, "https://...");
-
             LoadURLs();
-
         }
 
         private void BtnAddURL_Click(object sender, EventArgs e)
@@ -496,8 +575,34 @@ namespace Scraper
             {
                 BtnStart.Text = "Start";
                 LabelStatus.Text = "Idle...";
-                StopScrape();
+                StopScrape(true);
             }
+        }
+
+        private void ContextListURLsCopy_Click(object sender, EventArgs e)
+        {
+            if (ListURLs.SelectedItems.Count == 1)
+            {
+                string url = ListURLs.SelectedItems[0].SubItems[0].Text;
+
+                if (string.IsNullOrWhiteSpace(url))
+                    Clipboard.SetText(url);
+            }
+            else
+                CMBox.Show("Warning", "One Website must be selected", Style.Warning, Buttons.OK);
+        }
+
+        private void ContextListURLsOpen_Click(object sender, EventArgs e)
+        {
+            if (ListURLs.SelectedItems.Count == 1)
+            {
+                string url = ListURLs.SelectedItems[0].SubItems[0].Text;
+
+                if (string.IsNullOrWhiteSpace(url))
+                    Process.Start(url);
+            }
+            else
+                CMBox.Show("Warning", "One Website must be selected", Style.Warning, Buttons.OK);
         }
         #endregion
     }

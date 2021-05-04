@@ -29,6 +29,7 @@ namespace Scraper
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.ListURLs = new System.Windows.Forms.ListView();
             this.ColumnURL = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -38,6 +39,10 @@ namespace Scraper
             this.BtnAddURL = new System.Windows.Forms.Button();
             this.BtnStart = new System.Windows.Forms.Button();
             this.LabelStatus = new System.Windows.Forms.Label();
+            this.ContextListURLs = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.ContextListURLsCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.ContextListURLsOpen = new System.Windows.Forms.ToolStripMenuItem();
+            this.ContextListURLs.SuspendLayout();
             this.SuspendLayout();
             // 
             // ListURLs
@@ -48,9 +53,10 @@ namespace Scraper
             this.ColumnURL,
             this.ColumnActive,
             this.ColumnStatus});
+            this.ListURLs.FullRowSelect = true;
             this.ListURLs.HideSelection = false;
             this.ListURLs.Location = new System.Drawing.Point(4, 4);
-            this.ListURLs.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.ListURLs.Margin = new System.Windows.Forms.Padding(4);
             this.ListURLs.Name = "ListURLs";
             this.ListURLs.Size = new System.Drawing.Size(667, 269);
             this.ListURLs.TabIndex = 0;
@@ -60,7 +66,7 @@ namespace Scraper
             // ColumnURL
             // 
             this.ColumnURL.Text = "URL";
-            this.ColumnURL.Width = 300;
+            this.ColumnURL.Width = 455;
             // 
             // ColumnActive
             // 
@@ -75,7 +81,7 @@ namespace Scraper
             // TxtAddURL
             // 
             this.TxtAddURL.Location = new System.Drawing.Point(4, 276);
-            this.TxtAddURL.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.TxtAddURL.Margin = new System.Windows.Forms.Padding(4);
             this.TxtAddURL.Name = "TxtAddURL";
             this.TxtAddURL.Size = new System.Drawing.Size(565, 22);
             this.TxtAddURL.TabIndex = 1;
@@ -83,7 +89,7 @@ namespace Scraper
             // BtnAddURL
             // 
             this.BtnAddURL.Location = new System.Drawing.Point(573, 274);
-            this.BtnAddURL.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.BtnAddURL.Margin = new System.Windows.Forms.Padding(4);
             this.BtnAddURL.Name = "BtnAddURL";
             this.BtnAddURL.Size = new System.Drawing.Size(100, 27);
             this.BtnAddURL.TabIndex = 2;
@@ -94,7 +100,7 @@ namespace Scraper
             // BtnStart
             // 
             this.BtnStart.Location = new System.Drawing.Point(472, 305);
-            this.BtnStart.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.BtnStart.Margin = new System.Windows.Forms.Padding(4);
             this.BtnStart.Name = "BtnStart";
             this.BtnStart.Size = new System.Drawing.Size(201, 28);
             this.BtnStart.TabIndex = 3;
@@ -112,6 +118,29 @@ namespace Scraper
             this.LabelStatus.TabIndex = 4;
             this.LabelStatus.Text = "Status: Idle...";
             // 
+            // ContextListURLs
+            // 
+            this.ContextListURLs.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.ContextListURLs.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ContextListURLsCopy,
+            this.ContextListURLsOpen});
+            this.ContextListURLs.Name = "ContextListURLs";
+            this.ContextListURLs.Size = new System.Drawing.Size(211, 80);
+            // 
+            // ContextListURLsCopy
+            // 
+            this.ContextListURLsCopy.Name = "ContextListURLsCopy";
+            this.ContextListURLsCopy.Size = new System.Drawing.Size(210, 24);
+            this.ContextListURLsCopy.Text = "Copy";
+            this.ContextListURLsCopy.Click += new System.EventHandler(this.ContextListURLsCopy_Click);
+            // 
+            // ContextListURLsOpen
+            // 
+            this.ContextListURLsOpen.Name = "ContextListURLsOpen";
+            this.ContextListURLsOpen.Size = new System.Drawing.Size(210, 24);
+            this.ContextListURLsOpen.Text = "Open";
+            this.ContextListURLsOpen.Click += new System.EventHandler(this.ContextListURLsOpen_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -124,12 +153,13 @@ namespace Scraper
             this.Controls.Add(this.ListURLs);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Scraper";
             this.Load += new System.EventHandler(this.FrmMain_Load);
+            this.ContextListURLs.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -145,5 +175,8 @@ namespace Scraper
         private System.Windows.Forms.Button BtnAddURL;
         private System.Windows.Forms.Button BtnStart;
         private System.Windows.Forms.Label LabelStatus;
+        private System.Windows.Forms.ContextMenuStrip ContextListURLs;
+        private System.Windows.Forms.ToolStripMenuItem ContextListURLsCopy;
+        private System.Windows.Forms.ToolStripMenuItem ContextListURLsOpen;
     }
 }
