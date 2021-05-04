@@ -1,0 +1,12 @@
+var aTags = document.getElementsByTagName("a");
+var searchText = "Show phone";
+var found;
+
+for (var i = 0; i < aTags.length; i++) {
+  if (aTags[i].textContent == searchText) {
+    found = aTags[i];
+    break;
+  }
+}
+
+found.click();
