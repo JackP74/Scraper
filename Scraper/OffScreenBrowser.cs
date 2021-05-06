@@ -26,21 +26,37 @@ namespace Scraper
             this.scriptNeeded = scriptNeeded;
             this.scriptToRun = scriptToRun;
 
-            var mngr = Cef.GetGlobalCookieManager();
-            Cookie Ac = new Cookie
-            {
-                HttpOnly = false,
-                Name = "plus18",
-                Value = "1"
-            };
-            mngr.SetCookie("topescortbabes.com", Ac);
-
             browser.Load(uri);
 
             while (waitForBrowser)
                 Thread.Sleep(200);
 
             return browser.GetSourceAsync().Result;
+        }
+
+        public void DownloadImages(string url)
+        {
+            string host = new Uri(url).Host;
+            if (host.StartsWith("www.")) host = host.Substring(4);
+
+            switch(host)
+            {
+                case "topescortbabes.com":
+                    {
+                        waitForBrowser = true;
+
+                        browser.Load(url);
+
+                        while (waitForBrowser)
+                            Thread.Sleep(200);
+
+
+
+                        break;
+                    }
+                default:
+                    break;
+            }
         }
 
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)

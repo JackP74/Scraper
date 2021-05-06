@@ -11,6 +11,8 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using CefSharp;
+using CefSharp.OffScreen;
 using HtmlAgilityPack;
 using MessageCustomHandler;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
@@ -28,7 +30,7 @@ namespace Scraper
         private WebSiteStorage Sites = new WebSiteStorage();
         private readonly XmlSerializer xmlserializer = new XmlSerializer(typeof(WebSiteStorage));
 
-        private OffScreenBrowser browser = new OffScreenBrowser();
+        private OffScreenBrowser browser;
         private bool Scraping = false;
         private Thread threadScrape;
         #endregion
@@ -82,6 +84,34 @@ namespace Scraper
             AppDomain.CurrentDomain.AssemblyResolve += Resolver;
             InitializeComponent();
             CreateConsole();
+
+            var settings = new CefSettings()
+            {
+                CachePath = Path.Combine(AppPath, @"Cache"),
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36 Edg/90.0.818.51"
+            };
+
+            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+
+            var mngr = Cef.GetGlobalCookieManager();
+            mngr.DeleteCookies("https://topescortbabes.com");
+
+            CefSharp.Cookie Ac = new CefSharp.Cookie
+            {
+                HttpOnly = false,
+                Name = "plus18",
+                Value = "1",
+                Expires = new DateTime().AddYears(1),
+                Path = "/",
+                Domain = ".topescortbabes.com"
+            };
+
+            var result = mngr.SetCookie("https://topescortbabes.com", Ac);
+
+            if (!result)
+                LogError("Unable to set cookie 'plus18' on 'topescortbabes.com'");
+
+            browser = new OffScreenBrowser();
         }
 
         private static Assembly Resolver(object sender, ResolveEventArgs args)
@@ -593,8 +623,7 @@ namespace Scraper
 
                             htmlCode = browser.Get(url, true, Properties.Resources.TopEscortBabes);
 
-                            Clipboard.SetText(htmlCode);
-                            CMBox.Show("1");
+                            Log(url);
 
                             finalInfo += url + newLine;
 
@@ -706,25 +735,35 @@ namespace Scraper
                             sw.WriteLine(finalInfo);
                             sw.Close();
 
-                            try
-                            {
-                                HtmlNode mainImageNode = doc.GetElementbyId("profile-details-right");
-                                
+                            Log(ProfilePath);
 
-                                Clipboard.SetText(mainImageNode.OuterHtml);
-                                CMBox.Show("1");
+                            //try
+                            //{
+                            //    HtmlNode mainImageNode =  doc.DocumentNode.SelectSingleNode(".//div[@class='profile-details-right']");
+                            //    HtmlNode imagesParentNode = mainImageNode.SelectSingleNode(".//div[@class='photos-wrapper']");
 
-                                HtmlNode imagesParentNode = mainImageNode.SelectSingleNode(".//div[@class='photos-wrapper']");
+                            //    if (imagesParentNode != null)
+                            //    {
+                            //        HtmlNodeCollection imagesNode = imagesParentNode.SelectNodes(".//a[@class='ilightbox']");
 
-                                HtmlNodeCollection imagesNode = imagesParentNode.SelectNodes(".//a[@class='ilightbox']");
+                            //        if (imagesNode != null)
+                            //        {
+                            //            int i = 0;
+                            //            foreach (HtmlNode singleImageNode in imagesNode)
+                            //            {
+                            //                string imgURL = singleImageNode.GetAttributeValue("href", string.Empty);
 
-                                foreach (HtmlNode singleImageNode in imagesNode)
-                                {
-                                    string hrefValue = singleImageNode.GetAttributeValue("href", string.Empty);
-                                    Log(hrefValue);
-                                }
-                            }
-                            catch { }
+                            //                Log(imgURL);
+                            //                //Clipboard.SetText(imgURL);
+                                            
+                            //                client.DownloadFile(imgURL, Path.Combine(ProfilePath, $"{i}.jpg"));
+
+                            //                i++;
+                            //            }
+                            //        }
+                            //    }
+                            //}
+                            //catch { }
                             
                         }
                         catch (ThreadAbortException)

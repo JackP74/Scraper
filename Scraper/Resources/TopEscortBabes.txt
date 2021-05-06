@@ -1,1 +1,7 @@
+
+
+try {
 document.getElementsById("show-phone-number-button").click();
+}
+catch(err)
+{}
